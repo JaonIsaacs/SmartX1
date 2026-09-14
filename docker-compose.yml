@@ -1,0 +1,6 @@
+services:
+  smartx1:
+    image: ${DOCKER_REGISTRY-}smartx1
+    build:
+      context: .
+      dockerfile: SmartX1.1\Dockerfile

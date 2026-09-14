@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.37314.3
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SmartX1", "SmartX1.1\SmartX1.csproj", "{4767F060-61BA-4A28-B3AE-5EC9D4D00EE2}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{4767F060-61BA-4A28-B3AE-5EC9D4D00EE2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4767F060-61BA-4A28-B3AE-5EC9D4D00EE2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4767F060-61BA-4A28-B3AE-5EC9D4D00EE2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4767F060-61BA-4A28-B3AE-5EC9D4D00EE2}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {7C4207E8-706A-4EBD-9680-F3F17086F103}
+	EndGlobalSection
+EndGlobal

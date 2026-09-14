@@ -1,0 +1,728 @@
+﻿@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Smart-X Dashboard";
+}
+
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="display-4">Smart-X IoT Gateway</h1>
+                    <p class="text-muted">Real-time monitoring and configuration dashboard for distributed sensor network</p>
+                </div>
+                <div class="d-flex gap-2">
+                    <a href="/ResearchEngagement" class="btn btn-info btn-lg">
+                        <i class="bi bi-lightbulb"></i> Research
+                    </a>
+                    <button class="btn btn-primary btn-lg" data-bs-toggle="modal" data-bs-target="#registerSensorModal">
+                        <i class="bi bi-plus-circle"></i> Register Sensor
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Architectural Pillars -->
+    <div class="row mb-5">
+        <div class="col-lg-4 col-md-6 mb-3">
+            <div class="card h-100 border-primary">
+                <div class="card-header bg-primary text-white">
+                    <i class="bi bi-hdd"></i> Sensor Data Ingestion
+                </div>
+                <div class="card-body">
+                    <p class="card-text">Receive and process multi-typed telemetry data from edge devices without type coercion overhead.</p>
+                    <small class="text-muted">Status: <span class="badge bg-success">Active</span></small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4 col-md-6 mb-3">
+            <div class="card h-100 border-warning">
+                <div class="card-header bg-warning text-dark">
+                    <i class="bi bi-cloud-upload"></i> Media & Configuration
+                </div>
+                <div class="card-body">
+                    <p class="card-text">Upload device configurations, deployment photos, and hardware logs directly to sensor profiles.</p>
+                    <small class="text-muted">Status: <span class="badge bg-success">Active</span></small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4 col-md-6 mb-3">
+            <div class="card h-100 border-info">
+                <div class="card-header bg-info text-white">
+                    <i class="bi bi-calculator"></i> Data Aggregation
+                </div>
+                <div class="card-body">
+                    <p class="card-text">Combine sensor readings using operator overloading. Advanced OOP with generic types and recursive validation.</p>
+                    <small class="text-muted">Status: <span class="badge bg-success">Active</span></small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Key Metrics -->
+    <div class="row mb-5">
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title text-muted">Connected Devices</h5>
+                    <h2 class="display-5" id="deviceCount">0</h2>
+                    <small class="text-success">Active sensors</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title text-muted">Data Points Today</h5>
+                    <h2 class="display-5" id="dataPointCount">0</h2>
+                    <small class="text-info">Total ingested</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title text-muted">Attachments</h5>
+                    <h2 class="display-5" id="attachmentCount">0</h2>
+                    <small class="text-warning">Uploaded files</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title text-muted">Environmental</h5>
+                    <h2 class="display-5" id="envCount">0</h2>
+                    <small class="text-danger">Sensors</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Live Data Table -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="bi bi-table"></i> Latest Telemetry Readings</h5>
+                    <button class="btn btn-sm btn-outline-light" onclick="refreshData()">
+                        <i class="bi bi-arrow-clockwise"></i> Refresh
+                    </button>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0" id="telemetryTable">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Device ID</th>
+                                    <th>Location</th>
+                                    <th>Category</th>
+                                    <th>Current Value</th>
+                                    <th>Unit</th>
+                                    <th>Last Update</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="telemetryBody">
+                                <tr class="text-muted">
+                                    <td colspan="7" class="text-center py-5">Loading sensor data...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sensor Management Section with File Upload -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-dark text-white">
+                    <h5 class="mb-0"><i class="bi bi-gear"></i> Sensor Configuration & Files</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="nav nav-tabs mb-3" id="sensorTabs">
+                        <li class="nav-item">
+                            <a class="nav-link active" data-bs-toggle="tab" href="#devicesTab">Registered Devices</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" data-bs-toggle="tab" href="#uploadTab">Upload Files</a>
+                        </li>
+                    </ul>
+
+                    <div class="tab-content">
+                        <!-- Devices Tab -->
+                        <div id="devicesTab" class="tab-pane fade show active">
+                            <div class="row" id="sensorsList">
+                                <div class="col-12 text-center text-muted py-5">
+                                    Loading registered sensors...
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Upload Tab -->
+                        <div id="uploadTab" class="tab-pane fade">
+                            <div class="row">
+                                <div class="col-lg-8">
+                                    <form id="fileUploadForm" enctype="multipart/form-data">
+                                        <div class="mb-3">
+                                            <label for="deviceSelect" class="form-label">Select Device</label>
+                                            <select class="form-select" id="deviceSelect" required>
+                                                <option value="">Loading devices...</option>
+                                            </select>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label for="fileType" class="form-label">File Type</label>
+                                            <select class="form-select" id="fileType" required>
+                                                <option value="">Select file type...</option>
+                                                <option value="config">Configuration File (JSON, YAML, TXT)</option>
+                                                <option value="photo">Deployment Photo (JPG, PNG)</option>
+                                                <option value="log">Hardware Log (LOG, TXT)</option>
+                                            </select>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label for="fileInput" class="form-label">Select File</label>
+                                            <input type="file" class="form-control" id="fileInput" required>
+                                            <small class="text-muted">Max 10MB</small>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label for="fileDescription" class="form-label">Description (Optional)</label>
+                                            <textarea class="form-control" id="fileDescription" rows="3" placeholder="Describe this file..."></textarea>
+                                        </div>
+
+                                        <button type="button" class="btn btn-success" onclick="uploadFile()">
+                                            <i class="bi bi-cloud-upload"></i> Upload File
+                                        </button>
+                                    </form>
+                                </div>
+
+                                <div class="col-lg-4">
+                                    <div class="alert alert-info">
+                                        <h6><i class="bi bi-info-circle"></i> Supported Files</h6>
+                                        <ul class="small mb-0">
+                                            <li><strong>Config:</strong> Device settings (JSON, YAML, TXT)</li>
+                                            <li><strong>Photo:</strong> Deployment documentation</li>
+                                            <li><strong>Log:</strong> Hardware diagnostics</li>
+                                        </ul>
+                                    </div>
+                                    <div id="uploadStatus" class="alert alert-secondary">
+                                        Ready to upload...
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Register Sensor Modal -->
+<div class="modal fade" id="registerSensorModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title"><i class="bi bi-plus-circle"></i> Register New Sensor</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="registerForm" class="needs-validation">
+                    <div class="mb-3">
+                        <label for="deviceId" class="form-label">Device ID (MAC Address)</label>
+                        <input type="text" class="form-control" id="deviceId" placeholder="ESP32:AABBCCDDEE00" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="sensorName" class="form-label">Sensor Name</label>
+                        <input type="text" class="form-control" id="sensorName" placeholder="e.g., Farm Temperature Sensor" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="category" class="form-label">Category</label>
+                        <select class="form-select" id="category" required>
+                            <option value="">Select a category...</option>
+                            <option value="0">Environmental</option>
+                            <option value="1">Power Consumption</option>
+                            <option value="2">Actuator</option>
+                            <option value="3">Other</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="location" class="form-label">Deployment Location</label>
+                        <input type="text" class="form-control" id="location" placeholder="Sub-Zone B > Zone 1 > Facility A" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="unit" class="form-label">Unit of Measurement</label>
+                        <input type="text" class="form-control" id="unit" placeholder="e.g., °C, W, state" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="dataType" class="form-label">Data Type</label>
+                        <select class="form-select" id="dataType" required>
+                            <option value="float">Float (Temperature, Humidity)</option>
+                            <option value="int">Integer (Power, Count)</option>
+                            <option value="bool">Boolean (Switch State)</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="registerSensor()">Register Sensor</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    body {
+        background-color: #f8f9fa;
+    }
+
+    .card {
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        border: none;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        }
+
+    .table-hover tbody tr:hover {
+        background-color: #f5f5f5;
+    }
+
+    .badge {
+        padding: 0.4rem 0.6rem;
+        font-weight: 500;
+    }
+
+    .display-5 {
+        color: #0d6efd;
+        font-weight: 700;
+    }
+
+    .card-header {
+        font-weight: 600;
+        letter-spacing: 0.5px;
+    }
+
+    .sensor-card {
+        border-left: 4px solid #0d6efd;
+    }
+
+    .file-item {
+        background-color: #f8f9fa;
+        border-radius: 0.5rem;
+        padding: 0.75rem;
+        margin-bottom: 0.5rem;
+        border-left: 3px solid #0d6efd;
+    }
+
+    .file-item-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.5rem;
+    }
+
+    .file-badge {
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.25rem;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    /* Toast notifications */
+    .toast-container {
+        z-index: 1080;
+    }
+
+    @@keyframes pulseHighlight {
+        0% { color: #0d6efd; transform: scale(1.15); }
+        100% { color: #0d6efd; transform: scale(1); }
+    }
+
+    .metric-pulse {
+        animation: pulseHighlight 0.6s ease-out;
+    }
+
+    @@keyframes rowFlash {
+        0% { background-color: #fff3cd; }
+        100% { background-color: transparent; }
+    }
+
+    .row-flash {
+        animation: rowFlash 1.5s ease-out;
+    }
+</style>
+
+<script>
+    let previousDeviceCount = 0;
+    let previousDataPointCount = 0;
+    let knownDeviceIds = new Set();
+
+    // /Auto-refresh data every 5 seconds
+    setInterval(() => {
+        refreshData();
+    }, 5000);
+
+    async function refreshData() {
+        try {
+            const telemetryRes = await fetch('/api/telemetry/latest');
+            const telemetryData = await telemetryRes.json();
+            updateTelemetryTable(telemetryData);
+
+            const sensorsRes = await fetch('/api/sensors/all');
+            const sensors = await sensorsRes.json();
+            updateSensorsList(sensors);
+            updateDeviceSelect(sensors);
+            updateMetrics(telemetryData, sensors);
+            detectAndNotifyChanges(telemetryData, sensors);
+        } catch (error) {
+            console.error('Error refreshing data:', error);
+            showToast('Connection issue: could not refresh dashboard data', 'danger');
+        }
+    }
+
+    function detectAndNotifyChanges(telemetry, sensors) {
+        /// Notify when new devices register.
+        const currentIds = new Set(sensors.map(s => s.deviceId));
+        for (const id of currentIds) {
+            if (!knownDeviceIds.has(id)) {
+                showToast(`New device registered: ${id}`, 'success');
+            }
+        }
+        knownDeviceIds = currentIds;
+
+        /// Notify when data point volume grows significantly.
+        if (telemetry.length > previousDataPointCount) {
+            const delta = telemetry.length - previousDataPointCount;
+            if (previousDataPointCount > 0) {
+                showToast(`${delta} new telemetry reading${delta > 1 ? 's' : ''} received`, 'info');
+            }
+        }
+        previousDataPointCount = telemetry.length;
+        previousDeviceCount = sensors.length;
+    }
+
+    function showToast(message, type = 'info') {
+        const container = getOrCreateToastContainer();
+
+        const toastEl = document.createElement('div');
+        toastEl.className = `toast align-items-center text-bg-${type} border-0`;
+        toastEl.setAttribute('role', 'alert');
+        toastEl.innerHTML = `
+            <div class="d-flex">
+                <div class="toast-body">${message}</div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+        `;
+
+        container.appendChild(toastEl);
+        const toast = new bootstrap.Toast(toastEl, { delay: 4000 });
+        toast.show();
+        toastEl.addEventListener('hidden.bs.toast', () => toastEl.remove());
+    }
+
+    function getOrCreateToastContainer() {
+        let container = document.getElementById('toastContainer');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'toastContainer';
+            container.className = 'toast-container position-fixed bottom-0 end-0 p-3';
+            container.style.zIndex = '1080';
+            document.body.appendChild(container);
+        }
+        return container;
+    }
+
+    function animateMetric(elementId, newValue) {
+        const el = document.getElementById(elementId);
+        const oldValue = parseInt(el.textContent) || 0;
+
+        if (oldValue !== newValue) {
+            el.classList.add('metric-pulse');
+            setTimeout(() => el.classList.remove('metric-pulse'), 600);
+        }
+
+        el.textContent = newValue;
+    }
+
+    function updateTelemetryTable(data) {
+        const tbody = document.getElementById('telemetryBody');
+        if (!data || data.length === 0) {
+            tbody.innerHTML = '<tr class="text-muted"><td colspan="7" class="text-center py-3">No sensor data yet</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = data.map(record => `
+            <tr class="row-flash">
+                <td><code>${record.deviceId}</code></td>
+                <td>${record.deploymentLocation}</td>
+                <td><span class="badge bg-info">${getCategoryLabel(record.category)}</span></td>
+                <td><strong>${record.value}</strong></td>
+                <td>${record.unit}</td>
+                <td><small class="text-muted">${new Date(record.collectionTime).toLocaleTimeString()}</small></td>
+                <td>
+                    <button class="btn btn-sm btn-outline-primary" onclick="viewDeviceHistory('${record.deviceId}')">
+                        <i class="bi bi-graph-up"></i> History
+                    </button>
+                </td>
+            </tr>
+        `).join('');
+    }
+
+    function updateSensorsList(sensors) {
+        const container = document.getElementById('sensorsList');
+        if (!sensors || sensors.length === 0) {
+            container.innerHTML = '<div class="col-12 text-center text-muted py-5">No sensors registered yet</div>';
+            return;
+        }
+
+        container.innerHTML = sensors.map(sensor => `
+            <div class="col-lg-6 col-md-12 mb-3">
+                <div class="card sensor-card">
+                    <div class="card-body">
+                        <h6 class="card-title">${sensor.name}</h6>
+                        <p class="card-text small text-muted mb-2">
+                            <strong>Device:</strong> <code>${sensor.deviceId}</code>
+                        </p>
+                        <p class="card-text small text-muted mb-2">
+                            <strong>Location:</strong> ${sensor.deploymentLocation}
+                        </p>
+                        <p class="card-text small text-muted mb-2">
+                            <strong>Category:</strong> ${getCategoryLabel(sensor.category)} | <strong>Unit:</strong> ${sensor.unit}
+                        </p>
+                        <p class="card-text small text-muted mb-3">
+                            <strong>Status:</strong> <span class="badge ${sensor.isActive ? 'bg-success' : 'bg-danger'}">
+                                ${sensor.isActive ? 'Active' : 'Inactive'}
+                            </span>
+                        </p>
+                        <button class="btn btn-sm btn-outline-primary" onclick="viewDeviceFiles('${sensor.deviceId}')">
+                            <i class="bi bi-file-earmark"></i> View Files
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function updateDeviceSelect(sensors) {
+        const select = document.getElementById('deviceSelect');
+        if (!sensors || sensors.length === 0) {
+            select.innerHTML = '<option value="">No devices available</option>';
+            return;
+        }
+
+        select.innerHTML = '<option value="">Select a device...</option>' +
+            sensors.map(s => `<option value="${s.deviceId}">${s.name} (${s.deviceId})</option>`).join('');
+    }
+
+    function updateMetrics(telemetry, sensors) {
+        animateMetric('deviceCount', sensors.length);
+        animateMetric('dataPointCount', telemetry.length);
+        animateMetric('envCount', sensors.filter(s => s.category === 0).length);
+        animateMetric('attachmentCount', document.getElementById('attachmentCount').textContent);
+    }
+
+    function getCategoryLabel(category) {
+        const labels = {
+            0: 'Environmental',
+            1: 'Power',
+            2: 'Actuator',
+            3: 'Other'
+        };
+        return labels[category] || 'Unknown';
+    }
+
+    async function registerSensor() {
+        const form = document.getElementById('registerForm');
+        if (!form.checkValidity()) {
+            form.classList.add('was-validated');
+            return;
+        }
+
+        const profile = {
+            deviceId: document.getElementById('deviceId').value,
+            name: document.getElementById('sensorName').value,
+            category: parseInt(document.getElementById('category').value),
+            deploymentLocation: document.getElementById('location').value,
+            unit: document.getElementById('unit').value,
+            dataType: document.getElementById('dataType').value,
+            configurationJson: null
+        };
+
+        try {
+            const res = await fetch('/api/sensors/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(profile)
+            });
+
+            if (res.ok) {
+                showToast(`Sensor "${profile.name}" registered successfully!`, 'success');
+                form.reset();
+                form.classList.remove('was-validated');
+                bootstrap.Modal.getInstance(document.getElementById('registerSensorModal')).hide();
+                refreshData();
+            } else {
+                const error = await res.json();
+                showToast('Registration failed: ' + error.error, 'danger');
+            }
+        } catch (error) {
+            showToast('Registration failed: ' + error.message, 'danger');
+        }
+    }
+
+    async function uploadFile() {
+        const deviceId = document.getElementById('deviceSelect').value;
+        const fileType = document.getElementById('fileType').value;
+        const fileInput = document.getElementById('fileInput');
+        const description = document.getElementById('fileDescription').value;
+        const statusDiv = document.getElementById('uploadStatus');
+
+        if (!deviceId) {
+            statusDiv.innerHTML = '<div class="alert alert-danger">Please select a device</div>';
+            return;
+        }
+
+        if (!fileType) {
+            statusDiv.innerHTML = '<div class="alert alert-danger">Please select a file type</div>';
+            return;
+        }
+
+        if (!fileInput.files.length) {
+            statusDiv.innerHTML = '<div class="alert alert-danger">Please select a file</div>';
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('file', fileInput.files[0]);
+
+        try {
+            statusDiv.innerHTML = '<div class="alert alert-info"><i class="bi bi-hourglass-split"></i> Uploading...</div>';
+
+            const res = await fetch(`/api/files/upload/${deviceId}?fileType=${fileType}&description=${encodeURIComponent(description)}`, {
+                method: 'POST',
+                body: formData
+            });
+
+            if (res.ok) {
+                const attachment = await res.json();
+                statusDiv.innerHTML = `
+                    <div class="alert alert-success">
+                        <i class="bi bi-check-circle"></i> <strong>File uploaded successfully!</strong><br>
+                        <small>File: ${attachment.fileName} (${(attachment.fileSizeBytes / 1024).toFixed(2)} KB)</small>
+                    </div>
+                `;
+                showToast(`File "${attachment.fileName}" uploaded and encrypted`, 'success');
+                document.getElementById('fileUploadForm').reset();
+                await viewDeviceFiles(deviceId);
+            } else {
+                const error = await res.json();
+                statusDiv.innerHTML = `<div class="alert alert-danger"><i class="bi bi-exclamation-circle"></i> ${error.error}</div>`;
+            }
+        } catch (error) {
+            statusDiv.innerHTML = `<div class="alert alert-danger"><i class="bi bi-exclamation-circle"></i> Upload failed: ${error.message}</div>`;
+        }
+    }
+
+    async function viewDeviceFiles(deviceId) {
+        try {
+            const res = await fetch(`/api/files/device/${deviceId}`);
+            const files = await res.json();
+
+            if (!files || files.length === 0) {
+                showToast('No files attached to this device', 'info');
+                return;
+            }
+
+            let html = '<h6>Device Files:</h6>';
+            files.forEach(f => {
+                html += `
+                    <div class="file-item">
+                        <div class="file-item-header">
+                            <div>
+                                <strong>${f.fileName}</strong>
+                                <span class="file-badge bg-info">${f.fileType.toUpperCase()}</span>
+                            </div>
+                            <div>
+                                <button class="btn btn-sm btn-outline-primary" onclick="downloadFile(${f.id}, '${f.fileName}')">
+                                    <i class="bi bi-download"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-danger" onclick="deleteFile(${f.id})">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <small class="text-muted">${(f.fileSizeBytes / 1024).toFixed(2)} KB | ${new Date(f.uploadedAt).toLocaleString()}</small>
+                        ${f.description ? `<p class="small mb-0 mt-1">${f.description}</p>` : ''}
+                    </div>
+                `;
+            });
+
+            alert(html);
+        } catch (error) {
+            showToast('Error loading files: ' + error.message, 'danger');
+        }
+    }
+
+    async function downloadFile(attachmentId, fileName) {
+        window.location.href = `/api/files/download/${attachmentId}`;
+    }
+
+    async function deleteFile(attachmentId) {
+        if (!confirm('Delete this file?')) return;
+
+        try {
+            const res = await fetch(`/api/files/${attachmentId}`, { method: 'DELETE' });
+            if (res.ok) {
+                showToast('File deleted successfully', 'success');
+                location.reload();
+            }
+        } catch (error) {
+            showToast('Delete failed: ' + error.message, 'danger');
+        }
+    }
+
+    async function viewDeviceHistory(deviceId) {
+        try {
+            const res = await fetch(`/api/telemetry/device/${deviceId}/history`);
+            const history = await res.json();
+
+            if (!history || history.length === 0) {
+                showToast(`No historical data for ${deviceId} yet`, 'info');
+                return;
+            }
+
+            const rows = history.map(r =>
+                `${new Date(r.collectionTime).toLocaleString()} — ${r.value} ${r.unit}`
+            ).join('\n');
+
+            alert(`History for ${deviceId} (${history.length} readings):\n\n${rows}`);
+        } catch (error) {
+            showToast('Error loading history: ' + error.message, 'danger');
+        }
+    }
+
+    /// Load data on page load
+    refreshData();
+</script>

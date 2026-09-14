@@ -1,0 +1,419 @@
+﻿@page
+@using SmartX.Models
+@model SmartX.Pages.Admin.TestDataModel
+@{
+    ViewData["Title"] = "Test Data Generator";
+}
+
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="alert alert-info" role="alert">
+                <i class="bi bi-info-circle"></i> <strong>Development Tool:</strong> This page generates mock telemetry data for testing.
+                Use this to populate the dashboard without physical IoT devices.
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="bi bi-plus-circle"></i> Register Test Devices</h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">Register all 6 pre-configured test sensors at once:</p>
+                    <button class="btn btn-primary btn-lg w-100" onclick="registerAllTestDevices()">
+                        <i class="bi bi-lightning-fill"></i> Auto-Register 6 Test Sensors
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="bi bi-play-fill"></i> Generate Live Data</h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">Start continuous telemetry stream simulation:</p>
+                    <div class="input-group mb-3">
+                        <input type="number" class="form-control" id="dataPointCount" placeholder="Number of readings" value="50" min="1" max="1000">
+                    </div>
+                    <button class="btn btn-success btn-lg w-100" onclick="generateTestData()">
+                        <i class="bi bi-arrow-repeat"></i> Generate Data Now
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0"><i class="bi bi-gear"></i> Auto-Stream Settings</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label for="streamInterval" class="form-label">Interval (milliseconds)</label>
+                        <input type="number" class="form-control" id="streamInterval" value="2000" min="500" max="10000" step="500">
+                    </div>
+                    <div class="mb-3">
+                        <label for="streamDuration" class="form-label">Duration (seconds)</label>
+                        <input type="number" class="form-control" id="streamDuration" value="30" min="5" max="300">
+                    </div>
+                    <button class="btn btn-warning btn-lg w-100" id="streamBtn" onclick="startAutoStream()">
+                        <i class="bi bi-play-circle"></i> Start Auto-Stream
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0"><i class="bi bi-trash"></i> Clear All Data</h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">Remove all test data and reset dashboard:</p>
+                    <button class="btn btn-danger btn-lg w-100" onclick="if(confirm('Clear all telemetry data?')) clearAllData()">
+                        <i class="bi bi-exclamation-triangle"></i> Clear Dashboard
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-dark text-white">
+                    <h5 class="mb-0"><i class="bi bi-list"></i> Activity Log</h5>
+                </div>
+                <div class="card-body" style="max-height: 400px; overflow-y: auto;">
+                    <div id="activityLog" class="font-monospace small">
+                        <div class="text-muted">Awaiting commands...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .card {
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        border: none;
+    }
+
+    .btn-lg {
+        padding: 0.75rem 1rem;
+        font-weight: 600;
+    }
+
+    #activityLog {
+        background-color: #f8f9fa;
+        padding: 1rem;
+        border-radius: 0.25rem;
+        border-left: 3px solid #0d6efd;
+    }
+
+    .log-entry {
+        padding: 0.5rem 0;
+        border-bottom: 1px solid #dee2e6;
+    }
+
+        .log-entry:last-child {
+            border-bottom: none;
+        }
+
+    .log-success {
+        color: #198754;
+    }
+
+    .log-error {
+        color: #dc3545;
+    }
+
+    .log-info {
+        color: #0d6efd;
+    }
+
+    .log-warning {
+        color: #fd7e14;
+    }
+</style>
+
+<script>
+    let streamInterval = null;
+    const testDevices = [
+        {
+            deviceId: "ESP32:001A2B3C4D5E",
+            name: "Farm A - Temperature Sensor",
+            category: 0,
+            deploymentLocation: "Sub-Zone A > Zone 1 > Hydroponic Farm",
+            unit: "°C",
+            dataType: "float",
+            isActive: true,
+            configurationJson: '{"pin": 32, "interval": 5000}'
+        },
+        {
+            deviceId: "ESP32:11223344FF55",
+            name: "Farm A - Power Meter",
+            category: 1,
+            deploymentLocation: "Sub-Zone A > Zone 1 > Hydroponic Farm",
+            unit: "W",
+            dataType: "int",
+            isActive: true,
+            configurationJson: '{"pin": 33, "interval": 10000}'
+        },
+        {
+            deviceId: "ESP32:AA11BB22CC33",
+            name: "Irrigation Control - Zone 1",
+            category: 2,
+            deploymentLocation: "Sub-Zone A > Zone 1 > Valve Control",
+            unit: "state",
+            dataType: "bool",
+            isActive: true,
+            configurationJson: '{"pin": 25, "type": "relay"}'
+        },
+        {
+            deviceId: "ESP32:DDC0FFEE0000",
+            name: "Real Estate - Temperature",
+            category: 0,
+            deploymentLocation: "Sub-Zone B > Zone 2 > Property Unit 5",
+            unit: "°C",
+            dataType: "float",
+            isActive: true,
+            configurationJson: '{"pin": 34, "interval": 5000}'
+        },
+        {
+            deviceId: "ESP32:DEADBEEF1234",
+            name: "Smart Grid - Power Usage",
+            category: 1,
+            deploymentLocation: "Sub-Zone B > Zone 2 > Smart Meter",
+            unit: "W",
+            dataType: "int",
+            isActive: true,
+            configurationJson: '{"pin": 35, "interval": 15000}'
+        },
+        {
+            deviceId: "ESP32:CAFEBABE5678",
+            name: "Utility Tracker - Smart Switch",
+            category: 2,
+            deploymentLocation: "Sub-Zone B > Zone 2 > Distribution Panel",
+            unit: "state",
+            dataType: "bool",
+            isActive: true,
+            configurationJson: '{"pin": 26, "type": "relay"}'
+        }
+    ];
+
+    function addLog(message, type = 'info') {
+        const log = document.getElementById('activityLog');
+        const timestamp = new Date().toLocaleTimeString();
+        const entry = document.createElement('div');
+        entry.className = `log-entry log-${type}`;
+        entry.innerHTML = `<strong>[${timestamp}]</strong> ${message}`;
+        log.insertBefore(entry, log.firstChild);
+
+        // Keep only last 50 entries
+        while (log.children.length > 50) {
+            log.removeChild(log.lastChild);
+        }
+    }
+
+    async function registerAllTestDevices() {
+        addLog('Starting device registration...', 'info');
+        let successCount = 0;
+        let errorCount = 0;
+
+        for (const device of testDevices) {
+            try {
+                const res = await fetch('/api/sensors/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(device)
+                });
+
+                if (res.ok) {
+                    addLog(`✓ Registered: ${device.name}`, 'success');
+                    successCount++;
+                } else {
+                    const error = await res.json();
+                    addLog(`✗ ${device.name}: ${error.error}`, 'error');
+                    errorCount++;
+                }
+            } catch (error) {
+                addLog(`✗ ${device.name}: ${error.message}`, 'error');
+                errorCount++;
+            }
+
+            // Small delay between requests
+            await new Promise(resolve => setTimeout(resolve, 200));
+        }
+
+        addLog(`Registration complete: ${successCount} success, ${errorCount} failed`, 'info');
+        if (successCount > 0) {
+            alert(`✓ Registered ${successCount} devices successfully!`);
+        }
+    }
+
+    async function generateTestData() {
+        const count = parseInt(document.getElementById('dataPointCount').value) || 50;
+        addLog(`Generating ${count} telemetry data points...`, 'info');
+
+        let successCount = 0;
+        let errorCount = 0;
+
+        for (let i = 0; i < count; i++) {
+            const device = testDevices[Math.floor(Math.random() * testDevices.length)];
+            const payload = generatePayloadForDevice(device);
+
+            try {
+                const res = await fetch('/api/telemetry/ingest', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (res.ok) {
+                    successCount++;
+                } else {
+                    const text = await res.text();
+                    if (errorCount < 3) { // Only log first 3 errors to avoid spam
+                        addLog(`✗ Data ingest failed: ${text.substring(0, 100)}`, 'error');
+                    }
+                    errorCount++;
+                }
+            } catch (error) {
+                if (errorCount < 3) {
+                    addLog(`✗ Network error: ${error.message}`, 'error');
+                }
+                errorCount++;
+            }
+
+            // Small delay to avoid overwhelming the server
+            if (i % 10 === 0) {
+                await new Promise(resolve => setTimeout(resolve, 50));
+            }
+        }
+
+        addLog(`Data generation complete: ${successCount} sent, ${errorCount} failed`, 'info');
+        if (successCount > 0) {
+            alert(`✓ Generated ${successCount} data points!`);
+        } else {
+            alert(`✗ Failed to generate data. Check the activity log for errors. Make sure devices are registered first!`);
+        }
+    }
+
+    function generatePayloadForDevice(device) {
+        let value;
+
+        switch (device.category) {
+            case 0: // Environmental
+                value = (20 + Math.random() * 10).toFixed(2);
+                return {
+                    deviceId: device.deviceId,
+                    value: value,
+                    category: 0,
+                    deploymentLocation: device.deploymentLocation,
+                    unit: device.unit,
+                    collectionTime: new Date().toISOString()
+                };
+
+            case 1: // Power Consumption
+                value = Math.floor(100 + Math.random() * 300);
+                return {
+                    deviceId: device.deviceId,
+                    value: value.toString(),
+                    category: 1,
+                    deploymentLocation: device.deploymentLocation,
+                    unit: device.unit,
+                    collectionTime: new Date().toISOString()
+                };
+
+            case 2: // Actuator
+                value = Math.random() > 0.5 ? '1' : '0';
+                return {
+                    deviceId: device.deviceId,
+                    value: value,
+                    category: 2,
+                    deploymentLocation: device.deploymentLocation,
+                    unit: device.unit,
+                    collectionTime: new Date().toISOString()
+                };
+
+            default:
+                return null;
+        }
+    }
+
+    async function startAutoStream() {
+        const btn = document.getElementById('streamBtn');
+        const interval = parseInt(document.getElementById('streamInterval').value);
+        const duration = parseInt(document.getElementById('streamDuration').value);
+
+        if (streamInterval) {
+            clearInterval(streamInterval);
+            btn.innerHTML = '<i class="bi bi-play-circle"></i> Start Auto-Stream';
+            btn.classList.remove('btn-danger');
+            btn.classList.add('btn-warning');
+            addLog('Auto-stream stopped', 'info');
+            return;
+        }
+
+        btn.innerHTML = '<i class="bi bi-stop-circle"></i> Stop Auto-Stream';
+        btn.classList.add('btn-danger');
+        btn.classList.remove('btn-warning');
+        addLog(`Auto-stream started (${duration}s, ${interval}ms interval)`, 'info');
+
+        let elapsed = 0;
+        let dataCount = 0;
+        streamInterval = setInterval(async () => {
+            elapsed += interval;
+
+            const device = testDevices[Math.floor(Math.random() * testDevices.length)];
+            const payload = generatePayloadForDevice(device);
+
+            try {
+                const res = await fetch('/api/telemetry/ingest', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if (res.ok) {
+                    dataCount++;
+                }
+            } catch (error) {
+                console.error('Stream error:', error);
+            }
+
+            if (elapsed >= duration * 1000) {
+                clearInterval(streamInterval);
+                streamInterval = null;
+                btn.innerHTML = '<i class="bi bi-play-circle"></i> Start Auto-Stream';
+                btn.classList.remove('btn-danger');
+                btn.classList.add('btn-warning');
+                addLog(`Auto-stream completed: ${dataCount} data points sent`, 'success');
+            }
+        }, interval);
+    }
+
+    async function clearAllData() {
+        addLog('Clearing all telemetry data...', 'info');
+        try {
+            const res = await fetch('/api/telemetry/clear', { method: 'POST' });
+            if (res.ok) {
+                addLog('✓ All data cleared', 'success');
+                alert('Dashboard cleared!');
+            } else {
+                addLog('✗ Clear endpoint not yet implemented', 'warning');
+            }
+        } catch (error) {
+            addLog('✗ Error: ' + error.message, 'error');
+        }
+    }
+    ///old stuff used for protype testing, you can ignore this honestly
+</script>

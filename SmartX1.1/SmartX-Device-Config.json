@@ -1,0 +1,173 @@
+{
+  "device": {
+    "id": "ESP32:001A2B3C4D5E",
+    "name": "Farm A - Temperature Sensor",
+    "type": "environmental",
+    "version": "1.0.0",
+    "firmware": "ESP-IDF v5.1"
+  },
+  "hardware": {
+    "microcontroller": "ESP32-WROOM-32",
+    "ram_mb": 520,
+    "flash_mb": 4,
+    "operating_voltage": "3.3V",
+    "pins": {
+      "sensor_pin": 32,
+      "power_pin": 25,
+      "data_pin": 33
+    }
+  },
+  "sensors": [
+    {
+      "id": 1,
+      "type": "DHT22",
+      "parameter": "temperature",
+      "unit": "celsius",
+      "range": {
+        "min": -40,
+        "max": 80
+      },
+      "accuracy": "±0.5°C",
+      "sampling_interval_ms": 5000,
+      "pin": 32
+    },
+    {
+      "id": 2,
+      "type": "DHT22",
+      "parameter": "humidity",
+      "unit": "percent",
+      "range": {
+        "min": 0,
+        "max": 100
+      },
+      "accuracy": "±2%",
+      "sampling_interval_ms": 5000,
+      "pin": 32
+    }
+  ],
+  "connectivity": {
+    "protocol": "WiFi",
+    "ssid": "SmartX-IoT",
+    "security": "WPA2-PSK",
+    "gateway_ip": "192.168.1.100",
+    "gateway_port": 8080,
+    "retry_attempts": 5,
+    "retry_interval_seconds": 10
+  },
+  "deployment": {
+    "location": "Sub-Zone A > Zone 1 > Hydroponic Farm",
+    "installation_date": "2026-09-01T08:00:00Z",
+    "coordinates": {
+      "latitude": -33.9249,
+      "longitude": 18.4241,
+      "altitude_meters": 45
+    },
+    "environmental_conditions": {
+      "expected_temperature_range": "15-30°C",
+      "humidity_range": "30-80%",
+      "operating_environment": "Greenhouse, high humidity"
+    }
+  },
+  "power_management": {
+    "power_source": "USB-C 5V",
+    "battery_backup": false,
+    "sleep_mode_enabled": true,
+    "sleep_interval_seconds": 300,
+    "idle_power_consumption_ma": 50
+  },
+  "data_transmission": {
+    "format": "JSON",
+    "compression": "none",
+    "encryption": "TLS 1.2",
+    "batch_size": 10,
+    "batch_interval_seconds": 60,
+    "timeout_seconds": 30
+  },
+  "telemetry": {
+    "data_points": [
+      {
+        "name": "temperature",
+        "type": "float",
+        "unit": "°C",
+        "category": "environmental"
+      },
+      {
+        "name": "humidity",
+        "type": "float",
+        "unit": "%",
+        "category": "environmental"
+      },
+      {
+        "name": "battery_level",
+        "type": "int",
+        "unit": "%",
+        "category": "system"
+      }
+    ],
+    "sampling_rate_hz": 0.2,
+    "buffer_size": 100
+  },
+  "calibration": {
+    "last_calibration": "2026-08-15T10:30:00Z",
+    "calibration_interval_days": 30,
+    "temperature_offset": 0.0,
+    "humidity_offset": 0.0,
+    "calibration_notes": "Factory calibration, no adjustments needed"
+  },
+  "maintenance": {
+    "firmware_update_available": false,
+    "last_firmware_update": "2026-08-01T14:20:00Z",
+    "health_check_interval_minutes": 60,
+    "log_level": "INFO",
+    "diagnostics_enabled": true
+  },
+  "security": {
+    "api_key": "sk_prod_5abc123def456",
+    "certificate_path": "/etc/ssl/certs/device-cert.pem",
+    "auth_method": "token_based",
+    "token_refresh_interval_hours": 24,
+    "allowed_commands": [
+      "reboot",
+      "restart_sensor",
+      "update_config",
+      "request_diagnostics"
+    ]
+  },
+  "alerts": {
+    "enabled": true,
+    "thresholds": [
+      {
+        "parameter": "temperature",
+        "critical_high": 35,
+        "critical_low": 5,
+        "warning_high": 30,
+        "warning_low": 10
+      },
+      {
+        "parameter": "humidity",
+        "critical_high": 95,
+        "critical_low": 10,
+        "warning_high": 85,
+        "warning_low": 20
+      }
+    ],
+    "notification_channels": [
+      "email",
+      "webhook",
+      "sms"
+    ]
+  },
+  "metadata": {
+    "created_date": "2026-06-15T10:00:00Z",
+    "created_by": "Device Provisioning System",
+    "last_modified": "2026-09-11T12:30:00Z",
+    "last_modified_by": "Admin",
+    "version_history": [
+      {
+        "version": "1.0.0",
+        "date": "2026-06-15T10:00:00Z",
+        "changes": "Initial configuration"
+      }
+    ]
+  }
+}

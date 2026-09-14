@@ -1,0 +1,25 @@
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
+WORKDIR /src
+
+# Copy project files
+COPY ["SmartX1.1/SmartX1.1.csproj", "SmartX1.1/"]
+RUN dotnet restore "SmartX1.1/SmartX1.1.csproj"
+
+# Copy source code
+COPY . .
+WORKDIR "/src/SmartX1.1"
+RUN dotnet build "SmartX1.1.csproj" -c Release -o /app/build
+
+# Publish
+FROM build AS publish
+RUN dotnet publish "SmartX1.1.csproj" -c Release -o /app/publish
+
+# Runtime image
+FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS final
+WORKDIR /app
+COPY --from=publish /app/publish .
+
+EXPOSE 8080
+EXPOSE 8443
+
+ENTRYPOINT ["dotnet", "SmartX1.1.dll"]
